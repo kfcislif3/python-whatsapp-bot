@@ -54,7 +54,7 @@ def handle_message():
         return jsonify({"status": "error", "message": "Invalid JSON provided"}), 400
 
 
-# Required webhook verifictaion for WhatsApp
+# Required webhook verification for WhatsApp
 def verify():
     # Parse params from the webhook verification request
     mode = request.args.get("hub.mode")
@@ -82,7 +82,7 @@ def webhook_get():
     return verify()
 
 @webhook_blueprint.route("/webhook", methods=["POST"])
-@signature_required
+@signature_required #this decorater ensures that all messages are secure and verified   
 def webhook_post():
     return handle_message()
 

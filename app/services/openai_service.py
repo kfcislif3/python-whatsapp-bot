@@ -11,13 +11,18 @@ OPENAI_ASSISTANT_ID = os.getenv("OPENAI_ASSISTANT_ID")
 client = OpenAI(api_key=OPENAI_API_KEY)
 
 
+# --------------------------------------------------------------
+# Upload file to post-train LLM with further data
+# --------------------------------------------------------------
 def upload_file(path):
     # Upload a file with an "assistants" purpose
     file = client.files.create(
         file=open("../../data/airbnb-faq.pdf", "rb"), purpose="assistants"
     )
 
-
+# --------------------------------------------------------------
+# Create assistant
+# --------------------------------------------------------------
 def create_assistant(file):
     """
     You currently cannot set the temperature for Assistant via the API.
@@ -26,12 +31,14 @@ def create_assistant(file):
         name="WhatsApp AirBnb Assistant",
         instructions="You're a helpful WhatsApp assistant that can assist guests that are staying in our Paris AirBnb. Use your knowledge base to best respond to customer queries. If you don't know the answer, say simply that you cannot help with question and advice to contact the host directly. Be friendly and funny.",
         tools=[{"type": "retrieval"}],
-        model="gpt-4-1106-preview",
+        model="gpt-3.5-turbo-1106",
         file_ids=[file.id],
     )
     return assistant
 
-
+# --------------------------------------------------------------
+# Thread management
+# --------------------------------------------------------------
 # Use context manager to ensure the shelf file is closed properly
 def check_if_thread_exists(wa_id):
     with shelve.open("threads_db") as threads_shelf:
@@ -42,7 +49,9 @@ def store_thread(wa_id, thread_id):
     with shelve.open("threads_db", writeback=True) as threads_shelf:
         threads_shelf[wa_id] = thread_id
 
-
+# --------------------------------------------------------------
+# Run assistant
+# --------------------------------------------------------------
 def run_assistant(thread, name):
     # Retrieve the Assistant
     assistant = client.beta.assistants.retrieve(OPENAI_ASSISTANT_ID)
@@ -67,7 +76,9 @@ def run_assistant(thread, name):
     logging.info(f"Generated message: {new_message}")
     return new_message
 
-
+# --------------------------------------------------------------
+# Generate response
+# --------------------------------------------------------------
 def generate_response(message_body, wa_id, name):
     # Check if there is already a thread_id for the wa_id
     thread_id = check_if_thread_exists(wa_id)
